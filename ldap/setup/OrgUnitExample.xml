@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+-->
+<project basedir="." default="all" name="Fortress Sample Data">
+    <taskdef classname="org.apache.directory.fortress.core.ant.FortressAntTask" name="FortressAdmin" >
+        <classpath path="${java.class.path}"/>
+    </taskdef>
+
+    <target name="all">
+        <FortressAdmin>
+
+            <addorgunit>
+                <orgunit name="uou1" typeName="USER" description="Test User Org 1"/>
+                <orgunit name="uou2" typeName="USER" description="Test User Org 2"/>
+                <orgunit name="uou3" typeName="USER" description="Test User Org 3"/>
+                <orgunit name="uou4" typeName="USER" description="Test User Org 4"/>
+                <orgunit name="pou1" typeName="PERM" description="Test Perm Org 1"/>
+                <orgunit name="pou2" typeName="PERM" description="Test Perm Org 2"/>
+                <orgunit name="pou3" typeName="PERM" description="Test Perm Org 3"/>
+                <orgunit name="pou4" typeName="PERM" description="Test Perm Org 4"/>
+            </addorgunit>
+
+            <delorgunit>
+                <orgunit name="uou1" typeName="USER"/>
+                <orgunit name="uou2" typeName="USER"/>
+                <orgunit name="uou3" typeName="USER"/>
+                <orgunit name="uou4" typeName="USER"/>
+                <orgunit name="pou1" typeName="PERM"/>
+                <orgunit name="pou2" typeName="PERM"/>
+                <orgunit name="pou3" typeName="PERM"/>
+                <orgunit name="pou4" typeName="PERM"/>
+            </delorgunit>
+
+            <adduserorgunitinheritance>
+                <relationship child="uou2" parent="uou1"/>
+                <relationship child="uou3" parent="uou1"/>
+                <relationship child="uou4" parent="uou1"/>
+            </adduserorgunitinheritance>
+
+            <addpermorgunitinheritance>
+                <relationship child="pou2" parent="pou1"/>
+                <relationship child="pou3" parent="pou1"/>
+                <relationship child="pou4" parent="pou1"/>
+            </addpermorgunitinheritance>
+
+            <deluserorgunitinheritance>
+                <relationship child="uou2" parent="uou1"/>
+                <relationship child="uou3" parent="uou1"/>
+                <relationship child="uou4" parent="uou1"/>
+            </deluserorgunitinheritance>
+
+            <delpermorgunitinheritance>
+                <relationship child="pou2" parent="pou1"/>
+                <relationship child="pou3" parent="pou1"/>
+                <relationship child="pou4" parent="pou1"/>
+            </delpermorgunitinheritance>
+
+         </FortressAdmin>
+    </target>
+</project>
+

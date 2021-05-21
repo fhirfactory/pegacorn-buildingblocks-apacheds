@@ -1,0 +1,773 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+-->
+<!-- This file is for ant processing of targets required to initialize fortress configuration artifacts including property and data load files. -->
+<project name="fortress-core" default="init-fortress-config" basedir="." >
+    <!-- =================================
+          initialize all Fortress Core package properties
+         ================================= -->
+   <target name="init">
+      <tstamp/>
+       <!-- read properties from the ${user.home}/propfile, if any, which will take precedence over slapd.properties and build.properties -->
+       <property name="user-propfile" value="${user.home}/build.properties"/>
+       <property file="${user-propfile}"/>
+
+       <!-- read properties from the slapd.properties, if any, which will have precedence over build.properties -->
+       <property name="slapd-propfile" value="${basedir}/slapd.properties"/>
+       <property file="${slapd-propfile}"/>
+
+       <!-- read user defined properties from the build.properties -->
+       <property name="component-propfile" value="${basedir}/build.properties"/>
+       <property file="${component-propfile}"/>
+
+       <!-- ########### Project specific properties ########################### -->
+       <property name="project.name" value="Fortress Identity Access Management SDK"/>
+       <property name="name" value="fortress"/>
+       <property name="title" value="Fortress Access Management SDK for Java ${version}"/>
+       <property name="title.samples" value="Fortress Identity and Access Management Samples for Java ${version}"/>
+       <property name="vendor" value="Joshua Tree Software"/>
+       <property name="package" value="org.apache.directory.fortress.*"/>
+       <property name="package.samples" value="org.apache.directory.fortress.core.samples"/>
+
+       <!-- ########### Env specific properties ########################### -->
+       <property name="src.dir" value="${basedir}/src"/>
+       <property name="lib.dir" value="${basedir}/lib"/>
+       <property name="src.java.dir" value="${src.dir}/main/java"/>
+       <property name="src.test.dir" value="${src.dir}/test/java"/>
+       <property name="src.test.resources.dir" value="${src.dir}/test/resources"/>
+
+       <!-- ########### Build properties & artifacts ########################### -->
+       <property name="build.dir" value="${basedir}/build"/>
+       <property name="build.classes.dir" value="${build.dir}/classes"/>
+       <property name="build.test-classes.dir" value="${build.dir}/test-classes"/>
+       <property name="dist.dir" value="${basedir}/dist"/>
+       <property name="dist.jar" value="${dist.dir}/${name}-${version}.jar"/>
+       <property name="dist.test.jar" value="${dist.dir}/${name}-${version}-test.jar"/>
+       <property name="src.dist.zip" value="${dist.dir}/${name}-${version}-sources.jar"/>
+       <property name="src.test.dist.zip" value="${dist.dir}/${name}-${version}-sourcestest.jar"/>
+       <property name="src.samples.dist.zip" value="${dist.dir}/${name}SamplesSrc-${version}.zip"/>
+       <property name="samples.dist.zip" value="${dist.dir}/${name}Samples-${version}.zip"/>
+       <property name="fortressBuilder.zip" value="${dist.dir}/fortressBuilder-${platform}-${version}.zip"/>
+
+       <!-- ########### LDAP properties ########################### -->
+       <property name="ldap.dir" value="${basedir}/ldap"/>
+       <property name="ldap.setup.dir" value="${ldap.dir}/setup"/>
+       <property name="ldap.schema.dir" value="${ldap.dir}/schema"/>
+       <property name="slapd.schema.dir" value="${slapd.dir}/schema"/>
+       <property name="src.slapd.ssl.keys.dir" value="${src.test.resources.dir}/certs"/>
+       <property name="dst.slapd.ssl.keys.dir" value="${openldap.root}/ssl"/>
+
+       <!-- ########### Configuration, Load and builder properties ########################### -->
+       <property name="src.load.bootstrap.script" value="${ldap.setup.dir}/refreshLDAPData-src.xml"/>
+       <property name="dst.load.bootstrap.script" value="${ldap.setup.dir}/refreshLDAPData.xml"/>
+       <property name="load.delegatedadmin.script" value="${ldap.setup.dir}/DelegatedAdminManagerLoad.xml"/>
+       <property name="load.demo.script" value="${ldap.setup.dir}/FortressDemoUsers.xml"/>
+       <property name="build.win.properties" value="${basedir}/build.win.properties"/>
+       <property name="build.nix.properties" value="${basedir}/build.nix.properties"/>
+       <property name="build.properties" value="${basedir}/build.properties"/>
+       <property name="config.dir" value="${basedir}/config"/>
+       <property name="config.bootstrap.dir" value="${config.dir}/bootstrap"/>
+       <property name="src.remote.conf" value="${config.dir}/fortress.properties.src"/>
+       <property name="dst.remote.conf" value="${config.dir}/fortress.properties"/>
+       <property name="src.bootstrap.conf" value="${config.bootstrap.dir}/fortress.properties.src"/>
+       <property name="dst.bootstrap.conf" value="${config.bootstrap.dir}/fortress.properties"/>
+       <property name="builder.bootstrap.conf" value="${builder.home}/config/bootstrap/fortress.properties"/>
+       <property name="builder.remote.conf" value="${builder.home}/config/fortress.properties"/>
+       <property name="builder.load.bootstrap.script" value="${builder.home}/ldap/refreshLDAPData-src.xml"/>
+       <property name="ehcache.conf" value="${config.dir}/ehcache.xml"/>
+       <property name="bootstrap.ehcache.conf" value="${config.bootstrap.dir}/ehcache.xml"/>
+       <property name="test-resource.dir" value="${basedir}/src/test/resources"/>
+       <property name="images.dir" value="${test-resource.dir}/resources/images"/>
+
+
+       <!-- ########### Slapd manage & config properties ########################### -->
+       <property name="stop.slapd.script-win" value="${ldap.setup.dir}/stopSlapd.cmd"/>
+       <property name="src.start.slapd.script-win" value="${ldap.setup.dir}/startSlapd.cmd.src"/>
+       <property name="dst.start.slapd.script-win" value="${ldap.setup.dir}/startSlapd.cmd"/>
+       <property name="stop.slapd.script" value="${ldap.setup.dir}/stopSlapd.sh"/>
+       <property name="start.slapd.script" value="${ldap.setup.dir}/startSlapd.sh"/>
+       <property name="mkdir.slapd-win" value="${ldap.setup.dir}/mkDir.cmd"/>
+       <property name="uninstall.slapd.script" value="${ldap.setup.dir}/uninstall.sh"/>
+       <property name="install.slapd.script" value="${ldap.setup.dir}/install.sh"/>
+       <property name="source.symas.conf" value="${ldap.dir}/symas-openldap.conf.src"/>
+       <property name="target.symas.conf" value="${ldap.dir}/symas-openldap.conf"/>
+       <property name="dst.symas.conf" value="${slapd.dir}/symas-openldap.conf"/>
+       <property name="source.slapd.conf" value="${ldap.dir}/slapd.conf.src"/>
+       <property name="target.slapd.conf" value="${ldap.dir}/slapd.conf"/>
+       <property name="dst.slapd.conf" value="${slapd.dir}/slapd.conf"/>
+       <property name="source.fortress.schema" value="${ldap.schema.dir}/fortress.schema"/>
+       <property name="target.fortress.schema" value="${slapd.schema.dir}/fortress.schema"/>
+       <property name="source.rbac.schema" value="${ldap.schema.dir}/rbac.schema"/>
+       <property name="target.rbac.schema" value="${slapd.schema.dir}/rbac.schema"/>
+
+    </target>
+
+    <tstamp>
+        <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+    </tstamp>
+
+    <!-- =================================
+          target: init-openldap-config - modifies openldap artifacts for runtime use of fortress-core
+         ================================= -->
+     <target name="init-openldap-config" depends="init" description="--> map env params from build.properties to scripts and config files">
+         <echo message="###############  Modify slapd configuration per user settings  ###############"/>
+         <delete file="${target.slapd.conf}" failonerror="false"/>
+       <copy file="${source.slapd.conf}" tofile="${target.slapd.conf}"/>
+         <replace file="${target.slapd.conf}" token="@SCHEMA_PATH@" value="${slapd.schema.dir}"/>
+         <replace file="${target.slapd.conf}" token="@SUFFIX@" value="${suffix}"/>
+         <replace file="${target.slapd.conf}" token="@PID_PATH@" value="${pid.dir}"/>
+         <replace file="${target.slapd.conf}" token="@HISTORY_DB_PATH@" value="${db.hist.dir}"/>
+         <replace file="${target.slapd.conf}" token="@DEFAULT_DB_PATH@" value="${db.dir}"/>
+         <replace file="${target.slapd.conf}" token="@SLAPD_MODULE_PATH@" value="${slapd.module.dir}"/>
+         <replace file="${target.slapd.conf}" token="@LOGOPS@" value="${log.ops}"/>
+         <replace file="${target.slapd.conf}" token="@ROOT_DN@" value="${root.dn}"/>
+         <replace file="${target.slapd.conf}" token="@ROOT_PW@" value="${root.pw}"/>
+         <replace file="${target.slapd.conf}" token="@LOG_ROOT_DN@" value="${log.admin.user}"/>
+         <replace file="${target.slapd.conf}" token="@LOG_ROOT_PW@" value="${log.root.pw}"/>
+         <replace file="${target.slapd.conf}" token="@LOG_SUFFIX@" value="${log.suffix}"/>
+         <replace file="${target.slapd.conf}" token="@LOG_DBNOSYNCH@" value="${log.dbnosynch}"/>
+         <replace file="${target.slapd.conf}" token="@LOG_CHECKPOINT@" value="${log.checkpoint}"/>
+         <replace file="${target.slapd.conf}" token="@DFLT_DBNOSYNCH@" value="${dflt.dbnosynch}"/>
+         <replace file="${target.slapd.conf}" token="@DFLT_CHECKPOINT@" value="${dflt.checkpoint}"/>
+         <replace file="${target.slapd.conf}" token="@DB_MODULE_NM@" value="back_${db.type}.la"/>
+         <replace file="${target.slapd.conf}" token="@DB_TYPE@" value="${db.type}"/>
+         <replace file="${target.slapd.conf}" token="@LOG_RDRS@" value="${log.rdrs}"/>
+         <replace file="${target.slapd.conf}" token="@LOG_SIZE@" value="${log.size}"/>
+         <replace file="${target.slapd.conf}" token="@LOG_BDB_CACHE_SIZE@" value="${log.bdb.cache.size}"/>
+         <replace file="${target.slapd.conf}" token="@DFLT_RDRS@" value="${dflt.rdrs}"/>
+         <replace file="${target.slapd.conf}" token="@DFLT_SIZE@" value="${dflt.size}"/>
+         <replace file="${target.slapd.conf}" token="@DFLT_BDB_CACHE_SIZE@" value="${dflt.bdb.cache.size}"/>
+         <replace file="${target.slapd.conf}" token="@DFLT_BDB_CACHE_IDLE_SIZE@" value="${dflt.bdb.cache.idle.size}"/>
+         <replace file="${target.slapd.conf}" token="@POLICIES_DN@" value="${policies.dn}"/>
+
+         <!-- setup the symas openldap slapd start/stop script -->
+         <delete file="${target.symas.conf}" failonerror="false"/>
+         <copy file="${source.symas.conf}" tofile="${target.symas.conf}"/>
+         <replace file="${target.symas.conf}" token="@LDAP_URIS@" value="${ldap.uris}"/>
+
+         <antcall target="init-rbac-accelerator"></antcall>
+         <antcall target="init-slapd-ssl"></antcall>
+
+         <echo message="Target init-all-config complete."/>
+     </target>
+
+    <!-- =================================
+          RBAC Accelerator Overlay Config
+         ================================= -->
+    <target name="init-rbac-accelerator" depends="init">
+        <antcall target="enable-rbac-accelerator"></antcall>
+        <antcall target="disable-rbac-accelerator"></antcall>
+    </target>
+
+    <!-- =================================
+          Enable the RBAC Accelerator Overlay
+         ================================= -->
+    <target name="enable-rbac-accelerator" depends="init" if="${rbac.accelerator}">
+        <echo message="###############  Initialize the RBAC Accelerator Overlay"/>
+        <replace file="${target.slapd.conf}" token="@RBAC_MODULE@" value="${rbac.module}"/>
+        <replace file="${target.slapd.conf}" token="@DDS_MODULE@" value="${dds.module}"/>
+        <replace file="${target.slapd.conf}" token="@MONITOR_MODULE@" value="${monitor.module}"/>
+        <replace file="${target.slapd.conf}" token="@IS_RBAC_ACCELERATOR@" value=""/>
+        <replace file="${target.slapd.conf}" token="@USERS_DN@" value="${users.dn}"/>
+        <replace file="${target.slapd.conf}" token="@ROLES_DN@" value="${roles.dn}"/>
+        <replace file="${target.slapd.conf}" token="@PERMS_DN@" value="${perms.dn}"/>
+        <replace file="${target.slapd.conf}" token="@SUFFIX@" value="${suffix.dc}"/>
+        <replace file="${target.slapd.conf}" token="@SUFFIX_NAME@" value="${suffix.name}"/>
+        <replace file="${target.slapd.conf}" token="@RBACSESS_DB_PATH@" value="${db.sess.dir}"/>
+        <replace file="${target.slapd.conf}" token="@AUDIT_DB_PATH@" value="${db.audit.dir}"/>
+        <replace file="${target.slapd.conf}" token="@RBACOVERLAY_DB_PATH@" value="${db.rbac.dir}"/>
+        <replace file="${target.slapd.conf}" token="@RBAC_DN@" value="${rbac.dn}"/>
+        <replace file="${target.slapd.conf}" token="@SESSIONS_DN@" value="${sessions.dn}"/>
+        <replace file="${target.slapd.conf}" token="@AUDITS_DN@" value="${audit.dn}"/>
+
+        <echo message="###############  Backup old RBAC ACCEL OVERLAY LMDB audit folder  ###############"/>
+        <move todir="${db.bak.audit.dir}/${TODAY}" failonerror="false">
+            <fileset dir="${db.audit.dir}"/>
+        </move>
+        <echo message="###############  Backup old RBAC ACCEL OVERLAY LMDB session folder  ###############"/>
+        <move todir="${db.bak.sess.dir}/${TODAY}" failonerror="false">
+            <fileset dir="${db.sess.dir}"/>
+        </move>
+
+        <echo message="###############  Create RBAC ACCEL OVERLAY session folder  ###############"/>
+        <mkdir dir="${db.sess.dir}"/>
+        <echo message="###############  Create RBAC ACCEL OVERLAY audit folder  ###############"/>
+        <mkdir dir="${db.audit.dir}"/>
+        <echo message="###############  Create RBAC ACCEL OVERLAY rbac folder  ###############"/>
+        <mkdir dir="${db.rbac.dir}"/>
+        <antcall target="copy-rbac-libs"></antcall>
+    </target>
+
+    <!-- =================================
+          Disable RBAC Accelerator Overlay
+         ================================= -->
+    <target name="disable-rbac-accelerator" depends="init" unless="${rbac.accelerator}">
+        <echo message="###############  Disable the RBAC Accelerator Overlay"/>
+        <replace file="${target.slapd.conf}" token="@RBAC_MODULE@" value=""/>
+        <replace file="${target.slapd.conf}" token="@DDS_MODULE@" value=""/>
+        <replace file="${target.slapd.conf}" token="@MONITOR_MODULE@" value=""/>
+        <replace file="${target.slapd.conf}" token="@IS_RBAC_ACCELERATOR@" value="#"/>
+    </target>
+
+    <!-- =================================
+          OpenLDAP SSL Config
+         ================================= -->
+    <target name="init-slapd-ssl" depends="init">
+        <antcall target="enable-slapd-ssl"></antcall>
+        <antcall target="disable-slapd-ssl"></antcall>
+    </target>
+
+    <!-- =================================
+          Enable OpenLDAP SSL
+         ================================= -->
+    <target name="enable-slapd-ssl" depends="init" if="${enable.ldap.ssl}">
+        <echo message="###############  Enable OpenLDAP SSL"/>
+        <antcall target="copy-ssl-keys"></antcall>
+        <replace file="${target.slapd.conf}" token="@IS_SSL@" value=""/>
+        <replace file="${target.slapd.conf}" token="@CA_CERT_FILEW@" value="${dst.slapd.ssl.keys.dir}/${tls.ca.cert.file}"/>
+        <replace file="${target.slapd.conf}" token="@CERT_FILEW@" value="${dst.slapd.ssl.keys.dir}/${tls.cert.file}"/>
+        <replace file="${target.slapd.conf}" token="@CERT_KEY_FILEW@" value="${dst.slapd.ssl.keys.dir}/${tls.key.file}"/>
+    </target>
+
+    <!-- =================================
+          Disable OpenLDAP SSL
+         ================================= -->
+    <target name="disable-slapd-ssl" depends="init" unless="${enable.ldap.ssl}">
+        <echo message="###############  Disable OpenLDAP SSL"/>
+        <replace file="${target.slapd.conf}" token="@IS_SSL@" value="#"/>
+    </target>
+
+    <!-- =================================
+          init slapd for windows
+         ================================= -->
+    <target name="init-slapd-win-script" depends="init" if="windows" description="--> creates a startup file for slapd on windows">
+        <echo message="###############  Create slapd startup script for windows  ###############"/>
+        <delete file="${dst.start.slapd.script-win}"/>
+        <copy file="${src.start.slapd.script-win}" tofile="${dst.start.slapd.script-win}"/>
+        <replace file="${dst.start.slapd.script-win}" token="@SLAPD_LOCATION@" value="${slapd.exe.location}"/>
+        <echo message="init-slapd-win-script."/>
+    </target>
+
+    <!-- =================================
+          initialize the config files
+         ================================= -->
+    <target name="init-fortress-config" depends="init">
+       <echo message="Determine configuration requirements"/>
+       <antcall target="init-fortress-config-local"></antcall>
+       <antcall target="init-fortress-config-remote"></antcall>
+    </target>
+
+    <!-- =================================
+          target: init-fortress-config - uses configuration artifacts created by Fortress Builder in target system environment.
+         ================================= -->
+     <target name="init-fortress-config-remote" depends="init" description="--> uses external build.properties to create local script and config files.."  if="builder.home">
+         <echo message="###############  Import fortress configuration from Builder directory  ###############"/>
+       <copy file="${builder.bootstrap.conf}" tofile="${dst.bootstrap.conf}"/>
+       <copy file="${builder.remote.conf}" tofile="${dst.remote.conf}"/>
+       <copy file="${builder.load.bootstrap.script}" tofile="${dst.load.bootstrap.script}"/>
+         <echo message="###############  Copy ehcache config to bootstrap config folder  ###############"/>
+         <delete file="${bootstrap.ehcache.conf}"/>
+       <copy file="${ehcache.conf}" tofile="${bootstrap.ehcache.conf}"/>
+         <echo message="Target init-fortress-config-remote complete."/>
+     </target>
+
+    <!-- =================================
+          target: init-fortress-config - modifies fortress-core configuration artifacts for use of openldap in target system environment.
+         ================================= -->
+     <target name="init-fortress-config-local" depends="init" description="--> map env params from build.properties to scripts and config files.."  unless="builder.home">
+         <echo message="###############  Modify fortress configuration per user settings  ###############"/>
+         <delete file="${dst.bootstrap.conf}"/>
+         <delete file="${dst.remote.conf}"/>
+
+       <copy file="${src.bootstrap.conf}" tofile="${dst.bootstrap.conf}"/>
+         <!-- These params are bound for config/bootstrap/config.properties file and are used during the initial load of  Fortress which creates the Directory Information Tree (DIT) and a configuration node.  -->
+         <replace file="${dst.bootstrap.conf}" token="@SUFFIX@" value="${suffix}"/>
+         <replace file="${dst.bootstrap.conf}" token="@LDAP_HOST@" value="${ldap.host}"/>
+         <replace file="${dst.bootstrap.conf}" token="@LDAP_PORT@" value="${ldap.port}"/>
+         <replace file="${dst.bootstrap.conf}" token="@ROOT_DN@" value="${root.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@CFG_ROOT_PW@" value="${cfg.root.pw}"/>
+         <replace file="${dst.bootstrap.conf}" token="@ADM_MIN_CONN@" value="${admin.min.conn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@ADM_MAX_CONN@" value="${admin.max.conn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@LOG_ROOT_DN@" value="${log.admin.user}"/>
+         <replace file="${dst.bootstrap.conf}" token="@CFG_LOG_ROOT_PW@" value="${log.admin.pw}"/>
+         <replace file="${dst.bootstrap.conf}" token="@LOG_MIN_CONN@" value="${log.min.conn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@LOG_MAX_CONN@" value="${log.max.conn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@USR_MIN_CONN@" value="${user.min.conn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@USR_MAX_CONN@" value="${user.max.conn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@VALIDATE_CONN@" value="${all.validate.conn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@CFG_CRYPTO_PROP@" value="${crypto.prop}"/>
+         <replace file="${dst.bootstrap.conf}" token="@SERVER_TYPE@" value="${ldap.server.type}"/>
+         <replace file="${dst.bootstrap.conf}" token="@ROLE_OCCUPANTS@" value="${role.occupants}"/>
+         <replace file="${dst.bootstrap.conf}" token="@LDAP_CLIENT_TYPE@" value="${ldap.client.type}"/>
+         <replace file="${dst.bootstrap.conf}" token="@USERS_DN@" value="${users.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@ROLES_DN@" value="${roles.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@POLICIES_DN@" value="${policies.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@PERMS_DN@" value="${perms.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@CONSTRAINTS_DN@" value="${constraints.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@USEROUS_DN@" value="${userous.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@PERMOUS_DN@" value="${permous.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@ADMINROLES_DN@" value="${adminroles.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@ADMINPERMS_DN@" value="${adminperms.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@AUDITS_DN@" value="${audits.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@GROUPS_DN@" value="${groups.dn}"/>
+         <replace file="${dst.bootstrap.conf}" token="@ENABLE_LDAP_SSL@" value="${enable.ldap.ssl}"/>
+         <replace file="${dst.bootstrap.conf}" token="@ENABLE_LDAP_SSL_DEBUG@" value="${enable.ldap.ssl.debug}"/>
+         <replace file="${dst.bootstrap.conf}" token="@TRUST_STORE@" value="${trust.store}"/>
+         <replace file="${dst.bootstrap.conf}" token="@TRUST_STORE_PW@" value="${trust.store.password}"/>
+         <replace file="${dst.bootstrap.conf}" token="@TRUST_STORE_ONCLASSPATHW@" value="${trust.store.onclasspath}"/>
+         <replace file="${dst.bootstrap.conf}" token="@IS_RFC2307@" value="${rfc2307}"/>
+
+       <copy file="${src.remote.conf}" tofile="${dst.remote.conf}"/>
+         <!-- These params are bound for config/config.properties file and contain coordinate to the target ldap server (only). -->
+         <replace file="${dst.remote.conf}" token="@SUFFIX@" value="${suffix}"/>
+         <replace file="${dst.remote.conf}" token="@LDAP_HOST@" value="${ldap.host}"/>
+         <replace file="${dst.remote.conf}" token="@LDAP_PORT@" value="${ldap.port}"/>
+         <replace file="${dst.remote.conf}" token="@ROOT_DN@" value="${root.dn}"/>
+         <replace file="${dst.remote.conf}" token="@CFG_ROOT_PW@" value="${cfg.root.pw}"/>
+         <replace file="${dst.remote.conf}" token="@ADM_MIN_CONN@" value="${admin.min.conn}"/>
+         <replace file="${dst.remote.conf}" token="@ADM_MAX_CONN@" value="${admin.max.conn}"/>
+         <replace file="${dst.remote.conf}" token="@LOG_ROOT_DN@" value="${log.admin.user}"/>
+         <replace file="${dst.remote.conf}" token="@CFG_LOG_ROOT_PW@" value="${log.admin.pw}"/>
+         <replace file="${dst.remote.conf}" token="@ROLE_OCCUPANTS@" value="${role.occupants}"/>
+         <replace file="${dst.remote.conf}" token="@LOG_MIN_CONN@" value="${log.min.conn}"/>
+         <replace file="${dst.remote.conf}" token="@LOG_MAX_CONN@" value="${log.max.conn}"/>
+         <replace file="${dst.remote.conf}" token="@USR_MIN_CONN@" value="${user.min.conn}"/>
+         <replace file="${dst.remote.conf}" token="@VALIDATE_CONN@" value="${all.validate.conn}"/>
+         <replace file="${dst.remote.conf}" token="@USR_MAX_CONN@" value="${user.max.conn}"/>
+         <replace file="${dst.remote.conf}" token="@CFG_CRYPTO_PROP@" value="${crypto.prop}"/>
+         <replace file="${dst.remote.conf}" token="@ENABLE_REST@" value="${enable.mgr.impl.rest}"/>
+         <replace file="${dst.remote.conf}" token="@REST_HTTP_USER@" value="${http.user}"/>
+         <replace file="${dst.remote.conf}" token="@REST_HTTP_PW@" value="${http.pw}"/>
+         <replace file="${dst.remote.conf}" token="@REST_HTTP_HOST@" value="${http.host}"/>
+         <replace file="${dst.remote.conf}" token="@REST_HTTP_PORT@" value="${http.port}"/>
+         <replace file="${dst.remote.conf}" token="@REST_HTTP_PROTOCOL@" value="${http.protocol}"/>
+         <replace file="${dst.remote.conf}" token="@LDAP_CLIENT_TYPE@" value="${ldap.client.type}"/>
+         <replace file="${dst.remote.conf}" token="@ENABLE_LDAP_SSL@" value="${enable.ldap.ssl}"/>
+         <replace file="${dst.remote.conf}" token="@ENABLE_LDAP_SSL_DEBUG@" value="${enable.ldap.ssl.debug}"/>
+         <replace file="${dst.remote.conf}" token="@TRUST_STORE@" value="${trust.store}"/>
+         <replace file="${dst.remote.conf}" token="@TRUST_STORE_PW@" value="${trust.store.password}"/>
+         <replace file="${dst.remote.conf}" token="@TRUST_STORE_ONCLASSPATHW@" value="${trust.store.onclasspath}"/>
+         <replace file="${dst.remote.conf}" token="@KEY_STORE@" value="${key.store}"/>
+         <replace file="${dst.remote.conf}" token="@KEY_STORE_PW@" value="${key.store.password}"/>
+         <replace file="${dst.remote.conf}" token="@SERVER_TYPE@" value="${ldap.server.type}"/>
+         <replace file="${dst.remote.conf}" token="@IS_AUDIT@" value="${disable.audit}"/>
+         <replace file="${dst.remote.conf}" token="@LDAP_MAX_BATCH_SIZE@" value="${ldap.max.batch.size}"/>
+
+         <echo message="###############  Modify fortress load scripts per user settings  ###############"/>
+         <!-- The load script builds the Directory Information Tree and load the configuration entry used to hold params not needed to establish a connection with server. -->
+         <delete file="${dst.load.bootstrap.script}"/>
+         <copy file="${src.load.bootstrap.script}" tofile="${dst.load.bootstrap.script}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@SUFFIX_NAME@" value="${suffix.name}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@SUFFIX_DC@" value="${suffix.dc}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@SUFFIX_DC2@" value="${suffix.dc2}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@SUFFIX@" value="${suffix}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@USERS_DN@" value="${users.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@GROUPS_DN@" value="${groups.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@ROLES_DN@" value="${roles.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@POLICIES_DN@" value="${policies.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@PERMS_DN@" value="${perms.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@CONSTRAINTS_DN@" value="${constraints.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@USEROUS_DN@" value="${userous.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@PERMOUS_DN@" value="${permous.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@ADMINROLES_DN@" value="${adminroles.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@ADMINPERMS_DN@" value="${adminperms.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@AUDITS_DN@" value="${audits.dn}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@GROUP_OBJECT_CLASS@" value="${group.objectclass}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@GROUP_PROTOCOL@" value="${group.protocol}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@GROUP_PROPERTIES@" value="${group.properties}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@ROLE_OCCUPANTS@" value="${role.occupants}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@IS_RFC2307@" value="${rfc2307}"/>
+         <replace file="${dst.load.bootstrap.script}" token="@LDAP_MAX_BATCH_SIZE@" value="${ldap.max.batch.size}"/>
+         <echo message="###############  Copy ehcache config to bootstrap config folder  ###############"/>
+         <delete file="${bootstrap.ehcache.conf}"/>
+       <copy file="${ehcache.conf}" tofile="${bootstrap.ehcache.conf}"/>
+
+         <echo message="Target init-fortress-config-local complete."/>
+     </target>
+
+    <!-- =================================
+          target: init-all-config - configures openldap, fortress and the the base load scripts for ldap Directory Information Tree (DIT)
+         ================================= -->
+     <target name="init-all-config" depends="init" description="--> map env params from build.properties to scripts and config files">
+         <antcall target="init-openldap-config"></antcall>
+         <antcall target="init-fortress-config"></antcall>
+         <echo message="Target init-all-config complete."/>
+     </target>
+
+    <!-- =================================
+          target: init-slapd - Performs the following functions:
+
+                1. Initializes the Fortress runtime config
+                2. Installs OpenLDAP directory server to the local machine
+
+          WARNING: Use caution running this target.
+
+          It backs up the folder containing current LMDB database (pointed to by ${db.dir}) and creates a new/empty database folder.
+
+          This operation can be manually reversed by moving the saved DB folder (pointed to by ${db.hist.dir}) back to original location (again ${db.dir}).
+
+          This operation is for creating new or reinitializing existing OpenLdap instances back to origin and should NEVER be run against an LDAP server in prod env.
+
+          Do NOT run this Ant target on a production LDAP instance !!
+         ================================= -->
+    <target name="init-slapd" depends="init" description="--> task recreates openldap system and must be run as elevated priv's to teardown/create slapd files and folders">
+        <echo message="###############  Initialize OpenLDAP  ###############"/>
+
+        <echo message="###############  Stop slapd process  ###############"/>
+        <antcall target="stop-slapd"></antcall>
+        <antcall target="uninstall-slapd"></antcall>
+
+        <echo message="###############  Backup the slpad bdb folders  ###############"/>
+        <!-- Backup the OpenLDAP access log db folder -->
+        <move todir="${db.bak.hist.dir}/${TODAY}" failonerror="false">
+           <fileset dir="${db.hist.dir}"/>
+        </move>
+        <!-- Backup the OpenLDAP db folder -->
+        <move todir="${db.bak.dir}/${TODAY}" failonerror="false">
+           <fileset dir="${db.dir}"/>
+        </move>
+
+        <antcall target="install-slapd"></antcall>
+
+        <echo message="###############  Create new slapd bdb folders  ###############"/>
+        <mkdir dir="${db.dir}"/>
+        <mkdir dir="${db.hist.dir}"/>
+
+        <echo message="###############  Backup slapd configuration and Fortress LDAP schema  ###############"/>
+        <move file="${dst.slapd.conf}" tofile="${dst.slapd.conf}.bak.${TODAY}" failonerror="false" />
+        <move file="${dst.symas.conf}" tofile="${dst.symas.conf}.bak.${TODAY}" failonerror="false" />
+        <move file="${target.fortress.schema}" tofile="${target.fortress.schema}.${TODAY}" failonerror="false" />
+        <move file="${target.rbac.schema}" tofile="${target.rbac.schema}.${TODAY}" failonerror="false" />
+
+        <echo message="###############  Setup meta config and base load scripts for openldap and fortress  ###############"/>
+        <antcall target="init-all-config"></antcall>
+
+        <echo message="###############  Copy slapd configuration and Fortress LDAP schema files from source  ###############"/>
+        <copy todir="${slapd.schema.dir}" file="${source.fortress.schema}"/>
+        <copy todir="${slapd.schema.dir}" file="${source.rbac.schema}"/>
+        <copy todir="${slapd.dir}" file="${target.slapd.conf}"/>
+        <copy todir="${slapd.dir}" file="${target.symas.conf}"/>
+
+        <antcall target="copy-access-libs"></antcall>    
+        <antcall target="init-slapd-win-script"></antcall>
+        <antcall target="start-slapd"></antcall>
+        <echo message="Target init-slapd complete."/>
+    </target>
+
+    <!-- =================================
+          perform test configurations
+         ================================= -->
+    <target name="test-config" depends="init">
+        <echo message="###############  Test Config Steps"/>
+        <echo message="###############  Setup meta config and base load scripts for openldap and fortress  ###############"/>
+        <antcall target="init-all-config"></antcall>
+
+        <echo message="###############  Copy slapd configuration and Fortress LDAP schema files from source  ###############"/>
+        <copy todir="${slapd.schema.dir}" file="${source.fortress.schema}"/>
+        <copy todir="${slapd.dir}" file="${target.slapd.conf}"/>
+
+        <antcall target="copy-access-libs"></antcall>
+        <antcall target="init-slapd-win-script"></antcall>
+    </target>
+
+    <!-- =================================
+          copy the slapd access log libs from install to bin folder
+         ================================= -->
+    <target name="copy-access-libs" depends="init" >
+        <echo message="###############  Copy access log libs ${openldap.install.artifact.dir} to openldap lib folder ${slapd.module.dir}"/>
+    <copy todir="${slapd.module.dir}" failonerror="false">
+      <fileset dir="${openldap.install.artifact.dir}">
+        <include name="**/accesslog*"/>
+      </fileset>
+    </copy>
+    </target>
+
+    <!-- =================================
+          copy the slapd impl accelerator overlay libs from install to bin folder
+         ================================= -->
+    <target name="copy-rbac-libs" depends="init" >
+        <echo message="###############  Copy rbac libs ${openldap.install.artifact.dir} to openldap lib folder ${slapd.module.dir}"/>
+        <copy todir="${slapd.module.dir}" failonerror="false">
+            <fileset dir="${openldap.install.artifact.dir}">
+                <include name="**/rbac*"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <!-- =================================
+          copy the slapd impl accelerator overlay libs from install to bin folder
+         ================================= -->
+    <target name="copy-ssl-keys" depends="init" >
+        <echo message="###############  Copy SSL keys from ${src.slapd.ssl.keys.dir} to ${dst.slapd.ssl.keys.dir}"/>
+        <copy todir="${dst.slapd.ssl.keys.dir}" failonerror="false">
+            <fileset dir="${src.slapd.ssl.keys.dir}">
+                <include name="*.pem"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <!-- =================================
+          if windows system create slapd server folders
+         ================================= -->
+    <target name="mkdir-slapd-win" depends="init" if="windows">
+        <echo message="###############  Create the folder for windows slapd by running ${mkdir.slapd-win}"/>
+        <exec command="cmd.exe" spawn="true" osfamily="windows" dir="${install.image.loc}">
+            <arg value="/${fortress.home.drive}"/>
+            <arg value="${mkdir.slapd-win}"/>
+        </exec>
+    </target>
+
+    <!-- =================================
+          call the target to uninstall slapd server
+         ================================= -->
+    <target name="uninstall-slapd" depends="init">
+        <antcall target="uninstall-slapd-win"></antcall>
+        <antcall target="uninstall-slapd-nix"></antcall>
+    </target>
+
+    <!-- =================================
+          uninstall slapd from unix system
+         ================================= -->
+    <target name="uninstall-slapd-nix" depends="init" unless="windows">
+        <echo message="###############  Uninstall OpenLDAP binaries"/>
+        <exec dir="." executable="/bin/sh">
+            <arg line="${uninstall.slapd.script}"/>
+            <arg value="${slapd.uninstall}"/>
+        </exec>
+    </target>
+
+    <!-- =================================
+          call the target to uninstall slapd from windows system
+         ================================= -->
+    <target name="uninstall-slapd-win" depends="init" if="windows">
+        <antcall target="uninstall-slapd-win-if-present"></antcall>
+    </target>
+
+    <!-- =================================
+          if detect running windows uninstall slapd server from windows system.
+         ================================= -->
+    <target name="uninstall-slapd-win-if-present" depends="slapd.dir.check" if="slapd.dir.exists">
+        <echo message="###############  Uninstall OpenLDAP WIN binaries: from ${slapd.exe.location2}"/>
+        <exec command="cmd.exe" spawn="true" osfamily="windows" dir="${slapd.exe.location2}" >
+            <arg value="/${fortress.home.drive}"/>
+            <arg value="${uninstall.image.exe}"/>
+            <arg value="/S"/>
+        </exec>
+    </target>
+
+    <!-- =================================
+          call the target to uninstall slapd server
+         ================================= -->
+    <target name="install-slapd" depends="init">
+        <antcall target="install-slapd-win"></antcall>
+        <antcall target="install-slapd-nix"></antcall>
+    </target>
+
+    <!-- =================================
+          uninstall slapd from unix system
+         ================================= -->
+    <target name="install-slapd-nix" depends="init" unless="windows">
+        <echo message="###############  Install OpenLDAP binaries"/>
+        <exec dir="${openldap.install.artifact.dir}" executable="/bin/sh">
+            <arg line="${install.slapd.script}"/>
+            <arg value="${slapd.install}"/>
+        </exec>
+    </target>
+
+    <!-- =================================
+          uninstall slapd from windows system
+         ================================= -->
+    <target name="install-slapd-win" depends="init" if="windows">
+        <echo message="###############  Install OpenLDAP WIN binaries to ${slapd.exe.location}"/>
+        <mkdir dir="${slapd.exe.location}"/>
+        <exec command="cmd.exe" spawn="false" osfamily="windows" dir="${install.image.loc}">
+            <arg value="/${fortress.home.drive}"/>
+            <arg value="${install.image.exe}"/>
+            <arg value="/S"/>
+            <arg value="/D=${slapd.exe.location}"/>
+        </exec>
+    </target>
+
+    <!-- =================================
+          call the target to start the slapd server
+         ================================= -->
+    <target name="start-slapd" depends="init" description="--> start the OpenLDAP server">
+        <antcall target="start-slapd-win"></antcall>
+        <antcall target="start-slapd-nix"></antcall>
+    </target>
+
+    <!-- =================================
+          start the slapd server on unix system
+         ================================= -->
+    <target name="start-slapd-nix" depends="init" unless="windows">
+        <echo message="###############  Start the slapd process up  ###############"/>
+        <exec dir="." executable="/bin/sh">
+            <arg line="${start.slapd.script}"/>
+            <arg value="${slapd.start}"/>
+        </exec>
+    </target>
+
+    <!-- =================================
+          call the target to stop the slapd server
+         ================================= -->
+    <target name="stop-slapd" depends="init" description="--> stop the OpenLDAP server">
+        <antcall target="stop-slapd-win"></antcall>
+        <antcall target="stop-slapd-nix"></antcall>
+    </target>
+
+    <!-- =================================
+          stop the slapd server on unix system
+         ================================= -->
+    <target name="stop-slapd-nix" depends="init" unless="windows">
+        <echo message="###############  Stop the slapd process"/>
+        <exec dir="." executable="/bin/sh">
+          <arg line="${stop.slapd.script}"/>
+        </exec>
+    </target>
+
+    <!-- =================================
+          start the slapd server on windows system
+         ================================= -->
+    <target name="start-slapd-win" depends="init" if="windows">
+       <echo message="###############  Start the slapd process up: ${dst.start.slapd.script-win} in ${slapd.exe.dir}"/>       
+        <exec command="cmd.exe" spawn="true" osfamily="windows" dir="${slapd.exe.drive}:/${slapd.exe.dir}">
+            <arg value="/${fortress.home.drive}"/>
+            <arg value="${dst.start.slapd.script-win}"/>
+        </exec>
+    </target>
+
+    <!-- =================================
+          return true if slapd bin folder exists
+         ================================= -->
+    <target name="slapd.dir.check">
+        <condition property="slapd.dir.exists">
+            <available file="${slapd.exe.location}" type="dir"/>
+    </condition>
+     </target>
+
+    <!-- =================================
+          call the target to stop the slapd server on windows system
+         ================================= -->
+    <target name="stop-slapd-win" depends="init" if="windows">
+        <antcall target="stop-slapd-win-if-present"></antcall>
+    </target>
+
+    <!-- =================================
+          if slapd dir exists stop the slapd server on windows system
+         ================================= -->
+    <target name="stop-slapd-win-if-present" depends="slapd.dir.check" if="slapd.dir.exists">
+        <echo>${directory} exists</echo>
+        <echo message="###############  Stop the slapd process by running ${stop.slapd.script-win}"/>
+        <exec command="cmd.exe" spawn="true" osfamily="windows" dir="${slapd.exe.location}">
+            <arg value="/${fortress.home.drive}"/>
+            <arg value="${stop.slapd.script-win}"/>
+        </exec>
+    </target>
+
+    <!-- =================================
+          target: bdb-delete - Use Caution as it removes the file volume containing the BerkeleyDB User data!
+          This operation is destructive and non-reversible.  It is intended for clearing out existing systems data
+          before reinstalling with brand new data.
+
+          Never run this Ant target on a production system.
+         ================================= -->
+     <target name="bdb-delete" depends="init" description="--> delete OpenLDAP DB">
+         <echo message="Delete BDB DB"/>
+
+         <exec dir="." executable="/bin/sh">
+           <arg line="${stop.slapd.script}"/>
+         </exec>
+
+         <delete dir="${db.dir}"/>
+
+     </target>
+
+    <!-- =================================
+          target: init-jaxb - initializes properties and taskdefs used for schema generation and compilation.
+         ================================= -->
+<!--
+    <target name="init-jaxb" depends="resolve" description="&ndash;&gt; initializes properties and taskdefs used for schema generation and compilation">
+
+        <property name="generated.dir" value="${basedir}/generated"/>
+        <property name="generated.classes.dir" value="${generated.dir}/classes"/>
+        <property name="generated.schema.dir" value="${generated.dir}/schema"/>
+
+       &lt;!&ndash; Defines XJC and SchemaGen tasks &ndash;&gt;
+        <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
+            <classpath refid="build.class.path"/>
+        </taskdef>
+
+        <taskdef name="schemagen" classname="com.sun.tools.jxc.SchemaGenTask">
+                <classpath refid="build.class.path"/>
+        </taskdef>
+
+    </target>
+-->
+
+    <!-- =================================
+          target: generate-schema - generates JAXB schmea based on Java classes.
+         ================================= -->
+<!--
+    <target name="generate-schema" depends="init-jaxb,compile" description="&ndash;&gt; generates JAXB schema based on Fortress entity classes">
+        <echo message="Generating schemas..."/>
+        <mkdir dir="${generated.schema.dir}"/>
+        <schemagen srcdir="${src.java.dir}/org/openldap/fortress" destdir="${generated.schema.dir}">
+            <classpath refid="build.class.path"/>
+            <include name="rbac/Address.java"/>
+            <include name="rbac/AdminRole.java"/>
+            <include name="rbac/AdminRoleRelationship.java"/>
+            <include name="rbac/AuthZ.java"/>
+            <include name="rbac/Bind.java"/>
+            <include name="util/time/Constraint.java"/>
+            <include name="FortEntity.java"/>
+            <include name="rest/FortRequest.java"/>
+            <include name="rest/FortResponse.java"/>
+            <include name="rbac/Mod.java"/>
+            <include name="rbac/OrgUnit.java"/>
+            <include name="rbac/OrgUnitRelationship.java"/>
+            <include name="rbac/Permission.java"/>
+            <include name="rbac/PermGrant.java"/>
+            <include name="rbac/Permission.java"/>
+            <include name="rbac/PermObj.java"/>
+            <include name="rbac/Props.java"/>
+            <include name="rbac/PwPolicy.java"/>
+            <include name="rbac/Role.java"/>
+            <include name="rbac/RolePerm.java"/>
+            <include name="rbac/RoleRelationship.java"/>
+            <include name="rbac/SDSet.java"/>
+            <include name="rbac/Session.java"/>
+            <include name="rbac/User.java"/>
+            <include name="rbac/UserAdminRole.java"/>
+            <include name="rbac/UserAudit.java"/>
+            <include name="rbac/UserRole.java"/>
+        </schemagen>
+    </target>
+-->
+
+    <!-- =================================
+          target: compile-schema - generates Java classes based on schema.
+         ================================= -->
+<!--
+    <target name="compile-schema" depends="init-jaxb,generate-schema" description="&ndash;&gt; generates Java classes based on Fortress schema">
+        <echo message="Compiling the schema..."/>
+        <mkdir dir="${generated.classes.dir}"/>
+        <xjc schema="${generated.schema.dir}/schema1.xsd" destdir="${src.java.dir}" package="org.apache.directory.fortress.model" removeOldOutput="yes"/>
+    </target>
+-->
+
+</project>

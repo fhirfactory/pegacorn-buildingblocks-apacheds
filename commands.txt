@@ -1,0 +1,15 @@
+# ApacheDS LDAP server
+docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-apache-fortress:1.0.0-snapshot .
+
+\helm\helm upgrade pegacorn-communicate-apacheds-site-a --install --namespace site-a --set serviceName=pegacorn-communicate-apacheds,hostPathKey=/data/certificates,imagePullPolicy=Never,imageTag=1.0.0-snapshot,numOfPods=1 helm
+
+# Skip cert creation if they already exist
+Create-Cert-Set -certSubject 'pegacorn-communicate-apacheds.site-a' -certPwd '{some_value}' -createKeystore $True -truststorePwd '{some_value}'
+
+# Create Kubernetes secrets
+kubectl create secret generic pegacorn-communicate-apacheds-admin --from-literal=keyPassword="{some_value}" --namespace=site-a
+
+kubectl create secret generic pegacorn-communicate-apacheds-secrets --from-literal=adminPassword="{some_value}" --from-literal=truststorePassword="{some_value}" --namespace=site-a
+
+# Bypass ssl cipher error
+keytool -importkeystore -srckeystore pegacorn-communicate-apacheds.site-a.pfx -srcstoretype pkcs12 -destkeystore pegacorn-communicate-apacheds.site-a.jks -deststoretype JKS
