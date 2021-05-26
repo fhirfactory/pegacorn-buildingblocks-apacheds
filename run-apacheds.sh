@@ -1,4 +1,6 @@
 #!/bin/bash
+
+set -e
 #
 # Reference - https://github.com/TremoloSecurity/apacheds/blob/master/run_apacheds.sh
 #
