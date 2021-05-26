@@ -80,7 +80,7 @@ spec:
           tcpSocket:
             port: 10389
           initialDelaySeconds: 60
-        name: fusionpbx
+        name: apacheds
         ports:
         - containerPort: 10636
           name: ldap-ssl
