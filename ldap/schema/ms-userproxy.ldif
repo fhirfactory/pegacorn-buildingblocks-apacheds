@@ -194,6 +194,7 @@ m-may: division
 m-may: branch
 m-may: preferredFirstName
 m-may: jobTitle
+m-may: personalTitle
 m-may: suffix
 m-may: IRN
 m-may: GS1
