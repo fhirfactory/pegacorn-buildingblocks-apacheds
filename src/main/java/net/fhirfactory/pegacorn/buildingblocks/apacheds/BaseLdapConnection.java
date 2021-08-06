@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
+import org.slf4j.Logger;
+
 
 /**
  * Base class for all LDAP connections.
@@ -12,7 +14,7 @@ import org.apache.directory.ldap.client.api.LdapNetworkConnection;
  * @author Brendan Douglas
  *
  */
-public class BaseLdapConnection {
+public abstract class BaseLdapConnection {
 	protected String baseDN;
 	protected String host;
 	protected int port;
@@ -21,6 +23,9 @@ public class BaseLdapConnection {
 	protected String credentials;
 	
 	protected LdapConnection connection;
+	
+    
+    public abstract Logger getLogger();
 	
 	public BaseLdapConnection(String host, int port, boolean  isSsl, String name, String credentials, String baseDN) throws LdapException {		
 		this.host = host;
