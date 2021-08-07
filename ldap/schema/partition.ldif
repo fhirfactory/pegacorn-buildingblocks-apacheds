@@ -9,7 +9,7 @@ objectClass: ads-base
 objectclass: ads-partition
 objectclass: ads-jdbmPartition
 ads-partitionSuffix: dc=practitioners
-ads-contextentry:: ZG46IGRjPXByYWN0aXRpb25lcnMsZGM9Y29tCmRjOiBwcmFjdGl0aW9uZXJzCm9iamVjdGNsYXNzOiBkb21haW4Kb2JqZWN0Y2xhc3M6IHRvcAoK
+ads-contextentry:: ZG46IGRjPXByYWN0aXRpb25lcnMNCmRjOiBwcmFjdGl0aW9uZXJzDQpvYmplY3RjbGFzczogZG9tYWluDQpvYmplY3RjbGFzczogdG9w
 ads-jdbmpartitionoptimizerenabled: TRUE
 ads-partitioncachesize: 10000
 ads-partitionsynconwrite: TRUE
