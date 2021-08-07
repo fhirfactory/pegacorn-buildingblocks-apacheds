@@ -8,7 +8,7 @@ objectclass: top
 objectClass: ads-base
 objectclass: ads-partition
 objectclass: ads-jdbmPartition
-ads-partitionSuffix: dc=practitioners,dc=com
+ads-partitionSuffix: dc=practitioners
 ads-contextentry:: ZG46IGRjPXByYWN0aXRpb25lcnMsZGM9Y29tCmRjOiBwcmFjdGl0aW9uZXJzCm9iamVjdGNsYXNzOiBkb21haW4Kb2JqZWN0Y2xhc3M6IHRvcAoK
 ads-jdbmpartitionoptimizerenabled: TRUE
 ads-partitioncachesize: 10000
