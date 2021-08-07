@@ -6,7 +6,15 @@ set -e
 #
 
 # Start server.
-service apacheds-2.0.0-M24-default start
+    service ${APACHEDS_SERVICE_NAME} start && \
+    timeout 30 sh -c "while ! nc -z localhost 10389; do sleep 1; done" && \
+    service ${APACHEDS_SERVICE_NAME} status && \
+    ldapmodify -v -x -h localhost -p 10389 -D uid=admin,ou=system -w secret -a -f /tmp/ms-user.ldif && \
+    ldapmodify -v -x -h localhost -p 10389 -D uid=admin,ou=system -w secret -a -f /tmp/ms-userproxy.ldif && \
+    ldapmodify -v -x -h localhost -p 10389 -D uid=admin,ou=system -w secret -a -f /tmp/partition-${KUBERNETES_SERVICE_NAME}.ldif && \
+    service ${APACHEDS_SERVICE_NAME} stop
+    
+    service ${APACHEDS_SERVICE_NAME} start
 
 # Wait until ApacheDS service started and listens on port 10389.
 while [ -z "`netstat -tln | grep 10389`" ]; do
